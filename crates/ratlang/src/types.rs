@@ -124,7 +124,7 @@ pub fn resolve_type_expr(expr: &TypeExpr) -> Type {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct TypeInfo {
     pub expr_types: HashMap<Span, Type>,
 }

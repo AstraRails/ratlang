@@ -185,7 +185,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_function_decl(&mut self, asyncness: Option<Asyncness>) -> RatResult<FunctionDecl> {
-        let fn_token = self.expect_keyword(Keyword::Fn)?;
+        let fn_span = self.expect_keyword(Keyword::Fn)?.span.clone();
         let name = self.expect_identifier("function name")?;
         let generics = Vec::new();
         self.expect_symbol(Symbol::LParen, "expected '(' after function name")?;
@@ -206,7 +206,7 @@ impl<'a> Parser<'a> {
             body,
             asyncness: asyncness.unwrap_or(Asyncness::Sync),
             visibility: Visibility::Module,
-            span: fn_token.span,
+            span: fn_span,
         })
     }
 
@@ -276,20 +276,20 @@ impl<'a> Parser<'a> {
             return self.parse_return_statement();
         }
         if self.peek_keyword(Keyword::Break) {
-            let tok = self.expect_keyword(Keyword::Break)?;
+            let span = self.expect_keyword(Keyword::Break)?.span.clone();
             self.expect_newline("expected newline after break")?;
-            return Ok(Stmt::Break(tok.span));
+            return Ok(Stmt::Break(span));
         }
         if self.peek_keyword(Keyword::Continue) {
-            let tok = self.expect_keyword(Keyword::Continue)?;
+            let span = self.expect_keyword(Keyword::Continue)?.span.clone();
             self.expect_newline("expected newline after continue")?;
-            return Ok(Stmt::Continue(tok.span));
+            return Ok(Stmt::Continue(span));
         }
         if self.peek_keyword(Keyword::Defer) {
-            let defer_tok = self.expect_keyword(Keyword::Defer)?;
+            let span = self.expect_keyword(Keyword::Defer)?.span.clone();
             let expr = self.parse_expression()?;
             self.expect_newline("expected newline after defer expression")?;
-            return Ok(Stmt::Defer(expr, defer_tok.span));
+            return Ok(Stmt::Defer(expr, span));
         }
         if self.peek_keyword(Keyword::While) {
             return self.parse_while_statement();
@@ -304,7 +304,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_let_statement(&mut self) -> RatResult<Stmt> {
-        let start = self.expect_keyword(Keyword::Let)?.span;
+        let start = self.expect_keyword(Keyword::Let)?.span.clone();
         let pattern = Pattern::Identifier(self.expect_identifier("binding name")?, start);
         let ty = if self.eat_symbol(Symbol::Colon) {
             Some(self.parse_type_expr()?)
@@ -323,7 +323,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_var_statement(&mut self) -> RatResult<Stmt> {
-        let start = self.expect_keyword(Keyword::Var)?.span;
+        let start = self.expect_keyword(Keyword::Var)?.span.clone();
         let pattern = Pattern::Identifier(self.expect_identifier("binding name")?, start);
         let ty = if self.eat_symbol(Symbol::Colon) {
             Some(self.parse_type_expr()?)
@@ -342,7 +342,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_return_statement(&mut self) -> RatResult<Stmt> {
-        let start = self.expect_keyword(Keyword::Return)?.span;
+        let start = self.expect_keyword(Keyword::Return)?.span.clone();
         if self.peek_token(|t| matches!(t.kind, TokenKind::Newline | TokenKind::Dedent)) {
             self.expect_newline("expected newline after return")?;
             return Ok(Stmt::Return(ReturnStmt { value: None, span: start }));
@@ -356,7 +356,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_while_statement(&mut self) -> RatResult<Stmt> {
-        let start = self.expect_keyword(Keyword::While)?.span;
+        let start = self.expect_keyword(Keyword::While)?.span.clone();
         let condition = self.parse_expression()?;
         let body = self.parse_block()?;
         Ok(Stmt::While(WhileStmt {
@@ -367,7 +367,7 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_for_statement(&mut self) -> RatResult<Stmt> {
-        let start = self.expect_keyword(Keyword::For)?.span;
+        let start = self.expect_keyword(Keyword::For)?.span.clone();
         let binder = Pattern::Identifier(self.expect_identifier("loop variable")?, start);
         self.expect_keyword(Keyword::In)?;
         let iterable = self.parse_expression()?;
@@ -717,7 +717,7 @@ impl<'a> Parser<'a> {
             }
             self.expect_symbol(Symbol::RBracket, "expected ']' after type arguments")?;
             let base = match ty {
-                TypeExpr::Simple(path, span) => path,
+                TypeExpr::Simple(path, _span) => path,
                 _ => Vec::new(),
             };
             ty = TypeExpr::Generic {
