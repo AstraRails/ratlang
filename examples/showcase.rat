@@ -1,0 +1,58 @@
+module demo.showcase
+
+const GREETING = "Welcome to the Ratlang showcase"
+const LIMIT = 3
+
+fn factorial(n: int) -> int
+  if n <= 1
+    1
+  else
+    n * factorial(n - 1)
+
+fn describe(number: int) -> str
+  match number
+    0: "zero"
+    1: "one"
+    2: "two"
+    _:
+      if number % 2 == 0
+        "even"
+      else
+        "odd"
+
+fn countdown(from: int)
+  var current = from
+  while current >= 0
+    print("tick", current)
+    current = current - 1
+
+fn main(args: List[str]) -> int
+  print(GREETING)
+  defer print("leaving showcase")
+
+  let increment = |value| value + 1
+  print("increment 41 ->", increment(41))
+
+  let numbers = [1, 2, 3, 4, 5]
+  var total = 0
+  for n in numbers
+    total = total + n
+  print("numbers:", numbers)
+  print("total:", total)
+
+  let descriptor = describe(total % 6)
+  print("descriptor for total % 6:", descriptor)
+
+  print("factorial 5:", factorial(5))
+
+  countdown(LIMIT)
+
+  var via_index = 0
+  var index = 0
+  while index < len(numbers)
+    via_index = via_index + numbers[index]
+    index = index + 1
+  print("sum via while/index:", via_index)
+
+  print("args:", args)
+  0
