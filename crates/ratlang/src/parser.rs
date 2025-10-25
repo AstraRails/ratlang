@@ -925,14 +925,14 @@ fn expr_span(expr: &Expr) -> Option<Span> {
         | Expr::Set(SetExpr { span, .. })
         | Expr::Dict(DictExpr { span, .. })
         | Expr::Lambda(LambdaExpr { span, .. })
-        | Expr::Await(AwaitExpr { span, .. })
-        | Expr::Spawn(SpawnExpr { span, .. })
-        | Expr::AsyncBlock(BlockExpr { span, .. })
-        | Expr::Assign(AssignExpr { span, .. })
-        | Expr::Pipe(PipeExpr { span, .. })
-        | Expr::Range(RangeExpr { span, .. })
         | Expr::Result(ResultExpr { span, .. })
         | Expr::Option(OptionExpr { span, .. }) => Some(*span),
+        Expr::Await(expr) => Some(expr.span),
+        Expr::Spawn(expr) => Some(expr.span),
+        Expr::AsyncBlock(expr) => Some(expr.span),
+        Expr::Assign(expr) => Some(expr.span),
+        Expr::Pipe(expr) => Some(expr.span),
+        Expr::Range(expr) => Some(expr.span),
         Expr::Block(block) => Some(block.span),
     }
 }
