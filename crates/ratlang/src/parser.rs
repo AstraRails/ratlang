@@ -386,7 +386,26 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_expression(&mut self) -> RatResult<Expr> {
-        self.parse_binary_expr(0)
+        self.parse_assignment_expr()
+    }
+
+    fn parse_assignment_expr(&mut self) -> RatResult<Expr> {
+        let target = self.parse_binary_expr(0)?;
+        if self.eat_symbol(Symbol::Equals) {
+            let value = self.parse_expression()?;
+            let span = match (expr_span(&target), expr_span(&value)) {
+                (Some(a), Some(b)) => a.union(b),
+                (_, Some(b)) => b,
+                (Some(a), _) => a,
+                _ => self.prev_span(),
+            };
+            return Ok(Expr::Assign(Box::new(AssignExpr {
+                target,
+                value,
+                span,
+            })));
+        }
+        Ok(target)
     }
 
     fn parse_binary_expr(&mut self, min_prec: u8) -> RatResult<Expr> {
@@ -888,6 +907,33 @@ impl<'a> Parser<'a> {
             crate::diagnostics::RatDiagnostic::error(message)
                 .with_primary(token.span, Some("here".into())),
         )
+    }
+}
+
+fn expr_span(expr: &Expr) -> Option<Span> {
+    match expr {
+        Expr::Literal(_, span) | Expr::Identifier(_, span) => Some(*span),
+        Expr::Binary(expr) => Some(expr.span),
+        Expr::Unary(expr) => Some(expr.span),
+        Expr::Call(expr) => Some(expr.span),
+        Expr::Field(expr) => Some(expr.span),
+        Expr::Index(expr) => Some(expr.span),
+        Expr::If(expr) => Some(expr.span),
+        Expr::Match(expr) => Some(expr.span),
+        Expr::List(ListExpr { span, .. })
+        | Expr::Tuple(TupleExpr { span, .. })
+        | Expr::Set(SetExpr { span, .. })
+        | Expr::Dict(DictExpr { span, .. })
+        | Expr::Lambda(LambdaExpr { span, .. })
+        | Expr::Await(AwaitExpr { span, .. })
+        | Expr::Spawn(SpawnExpr { span, .. })
+        | Expr::AsyncBlock(BlockExpr { span, .. })
+        | Expr::Assign(AssignExpr { span, .. })
+        | Expr::Pipe(PipeExpr { span, .. })
+        | Expr::Range(RangeExpr { span, .. })
+        | Expr::Result(ResultExpr { span, .. })
+        | Expr::Option(OptionExpr { span, .. }) => Some(*span),
+        Expr::Block(block) => Some(block.span),
     }
 }
 
