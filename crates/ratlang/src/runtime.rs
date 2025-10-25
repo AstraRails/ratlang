@@ -1,11 +1,10 @@
 use crate::ast::*;
 use crate::compiler::Compilation;
 use crate::diagnostics::{RatError, RatResult};
-use crate::types::TypeInfo;
 use smol_str::SmolStr;
 use std::collections::HashMap;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum Value {
     Int(i128),
     Float(f64),
@@ -596,7 +595,12 @@ impl<'a> Interpreter<'a> {
 
     fn pattern_matches(&mut self, pattern: &Pattern, value: &Value) -> bool {
         match pattern {
-            Pattern::Identifier(_, _) => true,
+            Pattern::Identifier(name, _) => {
+                if name.as_str() != "_" {
+                    self.env.insert(name.clone(), value.clone());
+                }
+                true
+            }
             Pattern::Literal(lit, _) => match (lit, value) {
                 (Literal::Int(a), Value::Int(b)) => a == b,
                 (Literal::Float(a), Value::Float(b)) => a == b,

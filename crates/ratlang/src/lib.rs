@@ -18,25 +18,16 @@ pub mod source;
 pub mod tokens;
 pub mod lexer;
 pub mod ast;
-pub mod syntax;
 pub mod types;
 pub mod typeck;
-pub mod hir;
-pub mod ir;
-pub mod bytecode;
 pub mod runtime;
-pub mod stdlib;
-pub mod loader;
 pub mod compiler;
 pub mod fmt;
 pub mod docs;
-pub mod package;
-pub mod language_server;
-pub mod repl;
 
 pub use compiler::{CompilationOptions, Compiler};
 pub use diagnostics::{RatDiagnostic, RatError};
-pub use runtime::{ExecutionConfig, Executor, ExecutorHandle, Value};
+pub use runtime::{ExecutionConfig, Value, Vm};
 pub use source::{SourceFile, SourceId, SourceMap};
 pub use tokens::{Keyword, Symbol, Token, TokenKind};
 
@@ -46,15 +37,13 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// Build metadata such as git commit hash if available.
 pub const BUILD_META: &str = env!("CARGO_PKG_DESCRIPTION");
 
-/// Entry point that lexes, parses, type-checks, and executes the provided
-/// Ratlang source string using the default execution configuration. This is
-/// primarily intended for tooling and quick evaluation / REPL flows.
-pub async fn eval(source: &str) -> Result<Value, RatError> {
+/// Entry point that lexes, parses, type-checks, and执行提供的 Ratlang 源码，返回最终求值结果。
+pub fn eval(source: &str) -> Result<Value, RatError> {
     let map = SourceMap::single("<stdin>", source);
-    let compiler = Compiler::default();
-    let program = compiler.frontend().compile(&map).await?;
-    let mut executor = runtime::executor::ReplExecutor::new();
-    executor.execute(&program, ExecutionConfig::default()).await
+    let compiler = Compiler::new();
+    let compilation = compiler.compile(&map)?;
+    let mut vm = Vm::new();
+    vm.execute(&compilation, ExecutionConfig::default())
 }
 
 /// Convenience helper for formatting Ratlang source code using the canonical
@@ -66,9 +55,4 @@ pub fn format(source: &str) -> Result<String, RatError> {
 /// Generate documentation artifacts for the given Ratlang source map.
 pub fn document(map: &SourceMap) -> Result<docs::DocBundle, RatError> {
     docs::generate(map)
-}
-
-/// Build bundle for packaging and distribution via `ratpkg`.
-pub fn package(source_root: &std::path::Path) -> Result<package::PackageMetadata, RatError> {
-    package::build_package(source_root)
 }

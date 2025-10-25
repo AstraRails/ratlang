@@ -1,0 +1,30 @@
+module demo.app
+
+const PI = 3.1415926
+
+fn square(n: int) -> int
+  n * n
+
+fn sum_squares(xs: List[int]) -> int
+  var total = 0
+  for x in xs
+    total = total + square(x)
+  total
+
+fn main(args: List[str]) -> int
+  let numbers = [1, 2, 3, 4]
+  let result = sum_squares(numbers)
+  print("sum of squares =", result)
+
+  if result > 20
+    print("result is greater than 20")
+  else
+    print("result is less or equal to 20")
+
+  match result
+    30:
+      print("matched 30")
+    _:
+      print("no match")
+
+  0

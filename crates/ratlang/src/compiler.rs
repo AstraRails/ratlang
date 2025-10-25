@@ -51,3 +51,9 @@ impl Compiler {
         Ok(Compilation { program, type_info })
     }
 }
+
+impl Default for Compiler {
+    fn default() -> Self {
+        Self::new()
+    }
+}

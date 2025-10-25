@@ -109,9 +109,11 @@ impl TypeChecker {
                             annotated, value_ty
                         )));
                     }
-                    self.env.insert(self.pattern_name(&let_stmt.name), annotated);
-                } else {
-                    self.env.insert(self.pattern_name(&let_stmt.name), value_ty.clone());
+                    if let Some(name) = self.pattern_name(&let_stmt.name) {
+                        self.env.insert(name, annotated);
+                    }
+                } else if let Some(name) = self.pattern_name(&let_stmt.name) {
+                    self.env.insert(name, value_ty.clone());
                 }
                 Ok(None)
             }
@@ -125,9 +127,11 @@ impl TypeChecker {
                             annotated, value_ty
                         )));
                     }
-                    self.env.insert(self.pattern_name(&var_stmt.name), annotated);
-                } else {
-                    self.env.insert(self.pattern_name(&var_stmt.name), value_ty.clone());
+                    if let Some(name) = self.pattern_name(&var_stmt.name) {
+                        self.env.insert(name, annotated);
+                    }
+                } else if let Some(name) = self.pattern_name(&var_stmt.name) {
+                    self.env.insert(name, value_ty.clone());
                 }
                 Ok(None)
             }
@@ -163,7 +167,9 @@ impl TypeChecker {
             Stmt::For(for_stmt) => {
                 self.check_expr(&for_stmt.iterable)?;
                 self.env.push_scope();
-                self.env.insert(self.pattern_name(&for_stmt.binder), Type::Any);
+                if let Some(name) = self.pattern_name(&for_stmt.binder) {
+                    self.env.insert(name, Type::Any);
+                }
                 self.check_block(&for_stmt.body)?;
                 self.env.pop_scope();
                 Ok(None)
@@ -174,8 +180,9 @@ impl TypeChecker {
                 for handler in &try_stmt.handlers {
                     self.env.push_scope();
                     if let Some(pattern) = &handler.pattern {
-                        let name = self.pattern_name(pattern);
-                        self.env.insert(name, Type::Any);
+                        if let Some(name) = self.pattern_name(pattern) {
+                            self.env.insert(name, Type::Any);
+                        }
                     }
                     self.check_block(&handler.body)?;
                     self.env.pop_scope();
@@ -369,10 +376,10 @@ impl TypeChecker {
         Ok(ty)
     }
 
-    fn pattern_name(&self, pattern: &Pattern) -> SmolStr {
+    fn pattern_name(&self, pattern: &Pattern) -> Option<SmolStr> {
         match pattern {
-            Pattern::Identifier(name, _) => name.clone(),
-            _ => SmolStr::from("_"),
+            Pattern::Identifier(name, _) if name.as_str() != "_" => Some(name.clone()),
+            _ => None,
         }
     }
 }
