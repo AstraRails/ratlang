@@ -435,21 +435,21 @@ pub struct RangeExpr {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResultExpr {
-    pub ok: Option<Expr>,
-    pub err: Option<Expr>,
+    pub ok: Option<Box<Expr>>,
+    pub err: Option<Box<Expr>>,
     pub span: Span,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OptionExpr {
-    pub some: Option<Expr>,
+    pub some: Option<Box<Expr>>,
     pub span: Span,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AwaitableType;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BinaryOp {
     Add,
     Sub,
@@ -473,14 +473,14 @@ pub enum BinaryOp {
     RangeInclusive,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum UnaryOp {
     Neg,
     Not,
     BitNot,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Asyncness {
     Sync,
     Async,
@@ -492,7 +492,7 @@ impl Asyncness {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Visibility {
     Public,
     Module,

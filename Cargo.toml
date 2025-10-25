@@ -27,7 +27,7 @@ futures = "0.3"
 tokio = { version = "1.35", features = ["rt-multi-thread", "macros", "sync", "time", "fs", "signal"] }
 async-channel = "1.9"
 parking_lot = "0.12"
-smol_str = "0.2"
+smol_str = { version = "0.2", features = ["serde"] }
 indexmap = "2.0"
 itertools = "0.12"
 logos = "0.13"

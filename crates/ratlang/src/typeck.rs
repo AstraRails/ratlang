@@ -44,7 +44,8 @@ impl TypeChecker {
                 self.check_function(func)
             }
             Item::Statement(stmt) => {
-                self.check_statement(stmt)
+                self.check_statement(stmt)?;
+                Ok(())
             }
             Item::Struct(_) | Item::Class(_) | Item::Enum(_) | Item::Trait(_) | Item::Impl(_) => {
                 // Future work: structural typing. For now, treat as dynamically typed.
@@ -323,7 +324,7 @@ impl TypeChecker {
                     .iter()
                     .map(|param| param.ty.as_ref().map(resolve_type_expr).unwrap_or(Type::Any))
                     .collect::<Vec<_>>();
-                let body_ty = self.check_expr(&lambda.body)?;
+                let body_ty = self.check_expr(lambda.body.as_ref())?;
                 Type::Function(params, Box::new(body_ty), Asyncness::Sync)
             }
             Expr::Await(await_expr) => self.check_expr(&await_expr.expr)?,
@@ -348,22 +349,17 @@ impl TypeChecker {
                 Type::List(Box::new(Type::Int))
             }
             Expr::Result(result_expr) => {
-                match (&result_expr.ok, &result_expr.err) {
-                    (Some(ok), Some(err)) => {
-                        self.check_expr(ok)?;
-                        self.check_expr(err)?;
-                        Type::Any
-                    }
-                    (Some(ok), None) => {
-                        let ok_ty = self.check_expr(ok)?;
-                        Type::Struct(SmolStr::from(format!("Result[{:?}]", ok_ty)))
-                    }
-                    _ => Type::Any,
+                if let Some(ok) = &result_expr.ok {
+                    self.check_expr(ok.as_ref())?;
                 }
+                if let Some(err) = &result_expr.err {
+                    self.check_expr(err.as_ref())?;
+                }
+                Type::Any
             }
             Expr::Option(option_expr) => {
                 if let Some(expr) = &option_expr.some {
-                    let inner = self.check_expr(expr)?;
+                    let inner = self.check_expr(expr.as_ref())?;
                     Type::Option(Box::new(inner))
                 } else {
                     Type::Option(Box::new(Type::None))
@@ -386,21 +382,8 @@ impl TypeChecker {
 
 fn expr_span(expr: &Expr) -> Option<Span> {
     match expr {
-        Expr::Literal(_, span)
-        | Expr::Identifier(_, span)
-        | Expr::List(ListExpr { span, .. })
-        | Expr::Tuple(TupleExpr { span, .. })
-        | Expr::Set(SetExpr { span, .. })
-        | Expr::Dict(DictExpr { span, .. })
-        | Expr::Lambda(LambdaExpr { span, .. })
-        | Expr::Await(AwaitExpr { span, .. })
-        | Expr::Spawn(SpawnExpr { span, .. })
-        | Expr::AsyncBlock(BlockExpr { span, .. })
-        | Expr::Assign(AssignExpr { span, .. })
-        | Expr::Pipe(PipeExpr { span, .. })
-        | Expr::Range(RangeExpr { span, .. })
-        | Expr::Result(ResultExpr { span, .. })
-        | Expr::Option(OptionExpr { span, .. }) => Some(*span),
+        Expr::Literal(_, span) => Some(*span),
+        Expr::Identifier(_, span) => Some(*span),
         Expr::Binary(binary) => Some(binary.span),
         Expr::Unary(unary) => Some(unary.span),
         Expr::Call(call) => Some(call.span),
@@ -408,7 +391,20 @@ fn expr_span(expr: &Expr) -> Option<Span> {
         Expr::Index(index) => Some(index.span),
         Expr::If(if_expr) => Some(if_expr.span),
         Expr::Match(match_expr) => Some(match_expr.span),
+        Expr::List(list) => Some(list.span),
+        Expr::Tuple(tuple) => Some(tuple.span),
+        Expr::Set(set) => Some(set.span),
+        Expr::Dict(dict) => Some(dict.span),
+        Expr::Lambda(lambda) => Some(lambda.span),
+        Expr::Await(expr) => Some(expr.span),
+        Expr::Spawn(expr) => Some(expr.span),
+        Expr::AsyncBlock(expr) => Some(expr.span),
         Expr::Block(block) => Some(block.span),
+        Expr::Assign(expr) => Some(expr.span),
+        Expr::Pipe(expr) => Some(expr.span),
+        Expr::Range(expr) => Some(expr.span),
+        Expr::Result(expr) => Some(expr.span),
+        Expr::Option(expr) => Some(expr.span),
     }
 }
 

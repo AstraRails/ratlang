@@ -451,16 +451,16 @@ impl<'a> Interpreter<'a> {
             }
             Expr::Result(result_expr) => {
                 if let Some(ok) = &result_expr.ok {
-                    Ok(self.eval_expr(ok)?)
+                    Ok(self.eval_expr(ok.as_ref())?)
                 } else if let Some(err) = &result_expr.err {
-                    Ok(self.eval_expr(err)?)
+                    Ok(self.eval_expr(err.as_ref())?)
                 } else {
                     Ok(Value::None)
                 }
             }
             Expr::Option(option_expr) => {
                 if let Some(expr) = &option_expr.some {
-                    Ok(self.eval_expr(expr)?)
+                    Ok(self.eval_expr(expr.as_ref())?)
                 } else {
                     Ok(Value::None)
                 }
