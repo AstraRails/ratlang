@@ -1,4 +1,4 @@
-use crate::position::{FileId, Offset, Position, Span};
+use crate::position::{FileId, Position, Span};
 use std::collections::HashMap;
 use std::sync::Arc;
 

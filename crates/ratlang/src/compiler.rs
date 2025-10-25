@@ -3,7 +3,8 @@ use crate::diagnostics::{RatError, RatResult};
 use crate::lexer;
 use crate::parser;
 use crate::source::SourceMap;
-use crate::typeck::{self, TypeInfo};
+use crate::typeck;
+use crate::types::TypeInfo;
 
 #[derive(Debug, Clone)]
 pub struct CompilationOptions {

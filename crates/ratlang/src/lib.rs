@@ -21,6 +21,7 @@ pub mod ast;
 pub mod types;
 pub mod typeck;
 pub mod runtime;
+pub mod parser;
 pub mod compiler;
 pub mod fmt;
 pub mod docs;

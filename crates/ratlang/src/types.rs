@@ -1,5 +1,4 @@
 use crate::ast::{Asyncness, TypeExpr};
-use crate::diagnostics::{RatError, RatResult};
 use crate::position::Span;
 use smol_str::SmolStr;
 use std::collections::HashMap;

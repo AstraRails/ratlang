@@ -1,4 +1,4 @@
-use crate::position::{FileId, Position, Span};
+use crate::position::Span;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use thiserror::Error;
@@ -123,6 +123,8 @@ impl fmt::Display for RatDiagnostic {
         Ok(())
     }
 }
+
+impl std::error::Error for RatDiagnostic {}
 
 #[derive(Debug, Error)]
 pub enum RatError {
