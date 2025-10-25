@@ -11,17 +11,20 @@ fn factorial(n: int) -> int
 
 fn describe(number: int) -> str
   match number
-    0: "zero"
-    1: "one"
-    2: "two"
+    0:
+      "zero"
+    1:
+      "one"
+    2:
+      "two"
     _:
       if number % 2 == 0
         "even"
       else
         "odd"
 
-fn countdown(from: int)
-  var current = from
+fn countdown(start: int)
+  var current = start
   while current >= 0
     print("tick", current)
     current = current - 1

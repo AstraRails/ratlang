@@ -551,6 +551,8 @@ impl<'a> Interpreter<'a> {
             )));
         }
         let mut env = func.env.clone();
+        // Ensure user-defined functions can recurse by making the function value visible inside its own closure env.
+        env.insert(func.name.clone(), Value::Function(Function::User(func.clone())));
         env.push();
         for (param, arg) in func.params.iter().zip(args.into_iter()) {
             env.insert(param.name.clone(), arg);
