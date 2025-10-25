@@ -1,0 +1,12 @@
+[package]
+name = "rat"
+version = "0.1.0"
+edition = "2021"
+authors = ["ratlang project maintainers <dev@ratlang.org>"]
+license = "Apache-2.0"
+description = "Ratlang interactive interpreter (stub)."
+
+[dependencies]
+anyhow = { workspace = true }
+ratlang = { path = "../ratlang" }
+rustyline = "12"

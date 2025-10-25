@@ -1,0 +1,13 @@
+[package]
+name = "ratls"
+version = "0.1.0"
+edition = "2021"
+authors = ["ratlang project maintainers <dev@ratlang.org>"]
+license = "Apache-2.0"
+description = "Ratlang language server (stub)."
+
+[dependencies]
+anyhow = { workspace = true }
+tokio = { workspace = true }
+tower-lsp = { workspace = true }
+ratlang = { path = "../ratlang" }
