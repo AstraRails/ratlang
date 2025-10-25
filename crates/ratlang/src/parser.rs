@@ -243,7 +243,9 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_block(&mut self) -> RatResult<Block> {
-        self.expect_newline("expected newline before block")?;
+        if self.peek_token(|t| !matches!(t.kind, TokenKind::Indent)) {
+            self.expect_newline("expected newline before block")?;
+        }
         self.expect_token(|t| matches!(t.kind, TokenKind::Indent), "expected indent to start block")?;
         let indent_span = self.prev_span();
         let mut statements = Vec::new();
