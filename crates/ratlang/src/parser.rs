@@ -695,14 +695,38 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_pattern(&mut self) -> RatResult<Pattern> {
-        if let TokenKind::Identifier(name) = self.current().kind.clone() {
-            self.advance();
-            if name.as_str() == "_" {
-                return Ok(Pattern::Wildcard(self.prev_span()));
+        let token = self.current().clone();
+        match token.kind {
+            TokenKind::Identifier(name) => {
+                self.advance();
+                if name.as_str() == "_" {
+                    Ok(Pattern::Wildcard(token.span))
+                } else {
+                    Ok(Pattern::Identifier(name, token.span))
+                }
             }
-            return Ok(Pattern::Identifier(name, self.prev_span()));
+            TokenKind::IntLiteral(value) => {
+                self.advance();
+                Ok(Pattern::Literal(Literal::Int(value), token.span))
+            }
+            TokenKind::FloatLiteral(value) => {
+                self.advance();
+                Ok(Pattern::Literal(Literal::Float(value), token.span))
+            }
+            TokenKind::BoolLiteral(value) => {
+                self.advance();
+                Ok(Pattern::Literal(Literal::Bool(value), token.span))
+            }
+            TokenKind::StringLiteral(ref value) => {
+                self.advance();
+                Ok(Pattern::Literal(Literal::String(value.clone()), token.span))
+            }
+            TokenKind::Keyword(Keyword::None) => {
+                self.advance();
+                Ok(Pattern::Literal(Literal::None, token.span))
+            }
+            _ => Err(self.error_here("expected pattern")),
         }
-        Err(self.error_here("expected pattern"))
     }
 
     fn parse_argument_list(&mut self) -> RatResult<Vec<Expr>> {
