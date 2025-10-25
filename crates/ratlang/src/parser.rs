@@ -301,6 +301,9 @@ impl<'a> Parser<'a> {
         }
 
         let expr = self.parse_expression()?;
+        if matches!(expr, Expr::Block(_) | Expr::If(_) | Expr::Match(_)) {
+            return Ok(Stmt::Expr(expr));
+        }
         self.expect_newline("expected newline after expression statement")?;
         Ok(Stmt::Expr(expr))
     }
