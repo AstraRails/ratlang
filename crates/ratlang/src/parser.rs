@@ -651,7 +651,12 @@ impl<'a> Parser<'a> {
             else_block = Some(Block::new(vec![Stmt::Expr(elif_expr)], start));
         } else if self.peek_keyword(Keyword::Else) {
             self.expect_keyword(Keyword::Else)?;
-            else_block = Some(self.parse_block()?);
+            if self.peek_keyword(Keyword::If) {
+                let elif_expr = self.parse_if_expression()?;
+                else_block = Some(Block::new(vec![Stmt::Expr(elif_expr)], start));
+            } else {
+                else_block = Some(self.parse_block()?);
+            }
         }
         Ok(Expr::If(Box::new(IfExpr {
             condition,
