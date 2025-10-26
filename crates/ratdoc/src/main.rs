@@ -3,7 +3,11 @@ use clap::Parser;
 use ratlang::{docs, source::SourceMap};
 
 #[derive(Parser, Debug)]
-#[command(name = "ratdoc", version, about = "Ratlang documentation generator (preview)")]
+#[command(
+    name = "ratdoc",
+    version,
+    about = "Ratlang documentation generator (preview)"
+)]
 struct Args {
     /// Ratlang source file to document
     #[arg(value_name = "FILE")]

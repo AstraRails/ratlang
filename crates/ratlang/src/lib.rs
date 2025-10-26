@@ -12,19 +12,19 @@
 //! aims to be approachable to engineers already familiar with Rust, Python, or
 //! Java, and borrows their best ideas while removing friction.
 
+pub mod ast;
+pub mod compiler;
 pub mod diagnostics;
+pub mod docs;
+pub mod fmt;
+pub mod lexer;
+pub mod parser;
 pub mod position;
+pub mod runtime;
 pub mod source;
 pub mod tokens;
-pub mod lexer;
-pub mod ast;
-pub mod types;
 pub mod typeck;
-pub mod runtime;
-pub mod parser;
-pub mod compiler;
-pub mod fmt;
-pub mod docs;
+pub mod types;
 
 pub use compiler::{CompilationOptions, Compiler};
 pub use diagnostics::{RatDiagnostic, RatError};

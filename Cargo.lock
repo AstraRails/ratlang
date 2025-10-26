@@ -1590,6 +1590,7 @@ name = "rat"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "clap",
  "ratlang",
  "rustyline",
 ]

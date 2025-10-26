@@ -88,13 +88,20 @@ pub fn resolve_type_expr(expr: &TypeExpr) -> Type {
             None => Type::Any,
         },
         TypeExpr::Optional(inner, _) => Type::Option(Box::new(resolve_type_expr(inner))),
-        TypeExpr::Tuple(elements, _) => Type::Tuple(elements.iter().map(resolve_type_expr).collect()),
+        TypeExpr::Tuple(elements, _) => {
+            Type::Tuple(elements.iter().map(resolve_type_expr).collect())
+        }
         TypeExpr::List(inner, _) => Type::List(Box::new(resolve_type_expr(inner))),
         TypeExpr::Set(inner, _) => Type::Set(Box::new(resolve_type_expr(inner))),
-        TypeExpr::Dict(key, value, _) => {
-            Type::Dict(Box::new(resolve_type_expr(key)), Box::new(resolve_type_expr(value)))
-        }
-        TypeExpr::Function { params, ret, span: _ } => Type::Function(
+        TypeExpr::Dict(key, value, _) => Type::Dict(
+            Box::new(resolve_type_expr(key)),
+            Box::new(resolve_type_expr(value)),
+        ),
+        TypeExpr::Function {
+            params,
+            ret,
+            span: _,
+        } => Type::Function(
             params.iter().map(resolve_type_expr).collect(),
             Box::new(resolve_type_expr(ret)),
             Asyncness::Sync,

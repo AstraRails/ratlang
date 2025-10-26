@@ -110,10 +110,7 @@ impl fmt::Display for RatDiagnostic {
             write!(
                 f,
                 "\n  = note: {} at {}",
-                label
-                    .message
-                    .as_deref()
-                    .unwrap_or("related location"),
+                label.message.as_deref().unwrap_or("related location"),
                 label.span
             )?;
         }

@@ -14,7 +14,7 @@ resolver = "2"
 edition = "2021"
 rust-version = "1.74"
 authors = ["ratlang project maintainers <dev@ratlang.org>"]
-license = "Apache-2.0"
+license = "GPL-3.0"
 
 [workspace.dependencies]
 anyhow = "1.0"

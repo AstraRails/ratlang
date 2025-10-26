@@ -1,6 +1,6 @@
 use crate::ast::*;
 use crate::diagnostics::{RatError, RatResult};
-use crate::position::{DUMMY_SPAN, Span};
+use crate::position::{Span, DUMMY_SPAN};
 use crate::tokens::{Keyword, Symbol, Token, TokenKind};
 use smol_str::SmolStr;
 
@@ -246,7 +246,10 @@ impl<'a> Parser<'a> {
         if self.peek_token(|t| !matches!(t.kind, TokenKind::Indent)) {
             self.expect_newline("expected newline before block")?;
         }
-        self.expect_token(|t| matches!(t.kind, TokenKind::Indent), "expected indent to start block")?;
+        self.expect_token(
+            |t| matches!(t.kind, TokenKind::Indent),
+            "expected indent to start block",
+        )?;
         let indent_span = self.prev_span();
         let mut statements = Vec::new();
         self.skip_newlines();
@@ -263,7 +266,10 @@ impl<'a> Parser<'a> {
             statements.push(stmt);
             self.skip_newlines();
         }
-        self.expect_token(|t| matches!(t.kind, TokenKind::Dedent), "expected dedent to close block")?;
+        self.expect_token(
+            |t| matches!(t.kind, TokenKind::Dedent),
+            "expected dedent to close block",
+        )?;
         Ok(Block::new(statements, indent_span))
     }
 
@@ -350,7 +356,10 @@ impl<'a> Parser<'a> {
         let start = self.expect_keyword(Keyword::Return)?.span.clone();
         if self.peek_token(|t| matches!(t.kind, TokenKind::Newline | TokenKind::Dedent)) {
             self.expect_newline("expected newline after return")?;
-            return Ok(Stmt::Return(ReturnStmt { value: None, span: start }));
+            return Ok(Stmt::Return(ReturnStmt {
+                value: None,
+                span: start,
+            }));
         }
         let value = self.parse_expression()?;
         self.expect_newline("expected newline after return expression")?;
@@ -502,14 +511,22 @@ impl<'a> Parser<'a> {
             if self.eat_symbol(Symbol::Dot) {
                 let field = self.expect_identifier("field name")?;
                 let span = self.prev_span();
-                expr = Expr::Field(Box::new(FieldExpr { target: expr, field, span }));
+                expr = Expr::Field(Box::new(FieldExpr {
+                    target: expr,
+                    field,
+                    span,
+                }));
                 continue;
             }
             if self.eat_symbol(Symbol::LBracket) {
                 let index = self.parse_expression()?;
                 self.expect_symbol(Symbol::RBracket, "expected ']' after index expression")?;
                 let span = self.prev_span();
-                expr = Expr::Index(Box::new(IndexExpr { target: expr, index, span }));
+                expr = Expr::Index(Box::new(IndexExpr {
+                    target: expr,
+                    index,
+                    span,
+                }));
                 continue;
             }
             break;
@@ -596,7 +613,10 @@ impl<'a> Parser<'a> {
                 if !self.peek_symbol(Symbol::RBrace) {
                     loop {
                         let key = self.parse_expression()?;
-                        self.expect_symbol(Symbol::Colon, "expected ':' between dict key and value")?;
+                        self.expect_symbol(
+                            Symbol::Colon,
+                            "expected ':' between dict key and value",
+                        )?;
                         let value = self.parse_expression()?;
                         entries.push((key, value));
                         if !self.eat_symbol(Symbol::Comma) {
@@ -605,7 +625,10 @@ impl<'a> Parser<'a> {
                     }
                 }
                 self.expect_symbol(Symbol::RBrace, "expected '}' to close dict literal")?;
-                Ok(Expr::Dict(DictExpr { entries, span: token.span }))
+                Ok(Expr::Dict(DictExpr {
+                    entries,
+                    span: token.span,
+                }))
             }
             TokenKind::Symbol(Symbol::Pipe) => self.parse_lambda_expr(),
             TokenKind::Keyword(Keyword::If) => self.parse_if_expression(),
@@ -615,7 +638,9 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_lambda_expr(&mut self) -> RatResult<Expr> {
-        let pipe_span = self.expect_symbol(Symbol::Pipe, "expected '|' to start lambda")?.span;
+        let pipe_span = self
+            .expect_symbol(Symbol::Pipe, "expected '|' to start lambda")?
+            .span;
         let mut params = Vec::new();
         if !self.peek_symbol(Symbol::Pipe) {
             loop {
@@ -670,7 +695,10 @@ impl<'a> Parser<'a> {
         let start = self.expect_keyword(Keyword::Match)?.span;
         let scrutinee = self.parse_expression()?;
         self.expect_newline("expected newline after match scrutinee")?;
-        self.expect_token(|t| matches!(t.kind, TokenKind::Indent), "expected indent after match")?;
+        self.expect_token(
+            |t| matches!(t.kind, TokenKind::Indent),
+            "expected indent after match",
+        )?;
         let mut arms = Vec::new();
         self.skip_newlines();
         while !self.is_eof() && !self.peek_token(|t| matches!(t.kind, TokenKind::Dedent)) {
@@ -691,7 +719,10 @@ impl<'a> Parser<'a> {
             });
             self.skip_newlines();
         }
-        self.expect_token(|t| matches!(t.kind, TokenKind::Dedent), "expected dedent after match arms")?;
+        self.expect_token(
+            |t| matches!(t.kind, TokenKind::Dedent),
+            "expected dedent after match arms",
+        )?;
         Ok(Expr::Match(Box::new(MatchExpr {
             scrutinee,
             arms,
@@ -773,11 +804,7 @@ impl<'a> Parser<'a> {
                 TypeExpr::Simple(path, _span) => path,
                 _ => Vec::new(),
             };
-            ty = TypeExpr::Generic {
-                base,
-                args,
-                span,
-            };
+            ty = TypeExpr::Generic { base, args, span };
         }
         if self.eat_symbol(Symbol::Question) {
             ty = TypeExpr::Optional(Box::new(ty), span);
@@ -809,9 +836,10 @@ impl<'a> Parser<'a> {
     }
 
     fn peek_keyword_n(&self, keyword: Keyword, n: usize) -> bool {
-        self.tokens
-            .get(self.index + n)
-            .map_or(false, |t| matches!(t.kind, TokenKind::Keyword(k) if k == keyword))
+        self.tokens.get(self.index + n).map_or(
+            false,
+            |t| matches!(t.kind, TokenKind::Keyword(k) if k == keyword),
+        )
     }
 
     fn peek_symbol(&self, symbol: Symbol) -> bool {
@@ -904,7 +932,6 @@ impl<'a> Parser<'a> {
             self.advance();
         }
     }
-
 
     fn is_eof(&self) -> bool {
         matches!(self.current().kind, TokenKind::Eof)

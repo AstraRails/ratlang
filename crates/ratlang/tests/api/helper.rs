@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use ratlang::{Compiler, ExecutionConfig, SourceMap, Vm, Value};
+use ratlang::{Compiler, ExecutionConfig, SourceMap, Value, Vm};
 
 pub fn run_source(name: &str, source: &str) -> Value {
     run_source_with_config(name, source, ExecutionConfig::default())
@@ -22,5 +22,6 @@ fn run_map(map: SourceMap, config: ExecutionConfig) -> Value {
     let compiler = Compiler::new();
     let compilation = compiler.compile(&map).expect("failed to compile source");
     let mut vm = Vm::new();
-    vm.execute(&compilation, config).expect("failed to execute program")
+    vm.execute(&compilation, config)
+        .expect("failed to execute program")
 }

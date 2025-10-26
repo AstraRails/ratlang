@@ -10,3 +10,4 @@ description = "Ratlang interactive interpreter (stub)."
 anyhow = { workspace = true }
 ratlang = { path = "../ratlang" }
 rustyline = "12"
+clap = { workspace = true }
