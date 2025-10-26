@@ -221,10 +221,7 @@ impl<'a> Interpreter<'a> {
                 }
                 Ok(ExecState::Value(value))
             }
-            Stmt::Expr(expr) => {
-                let value = self.eval_expr(expr)?;
-                Ok(ExecState::Value(value))
-            }
+            Stmt::Expr(expr) => self.eval_expr_statement(expr),
             Stmt::Return(return_stmt) => {
                 let value = if let Some(expr) = &return_stmt.value {
                     self.eval_expr(expr)?
@@ -288,6 +285,19 @@ impl<'a> Interpreter<'a> {
         }
     }
 
+    fn eval_expr_statement(&mut self, expr: &Expr) -> RatResult<ExecState> {
+        match expr {
+            Expr::If(if_expr) => self.eval_if_expr(if_expr),
+            Expr::Match(match_expr) => self.eval_match_expr(match_expr),
+            Expr::Block(block) => self.eval_block(block),
+            Expr::AsyncBlock(block_expr) => self.eval_block(&block_expr.block),
+            _ => {
+                let value = self.eval_expr(expr)?;
+                Ok(ExecState::Value(value))
+            }
+        }
+    }
+
     fn eval_expr(&mut self, expr: &Expr) -> RatResult<Value> {
         match expr {
             Expr::Literal(lit, _) => Ok(match lit {
@@ -334,39 +344,12 @@ impl<'a> Interpreter<'a> {
                 self.eval_index(target, idx)
             }
             Expr::If(if_expr) => {
-                if self.eval_expr(&if_expr.condition)?.is_truthy() {
-                    match self.eval_block(&if_expr.then_branch)? {
-                        ExecState::Return(value) => Ok(value),
-                        ExecState::Value(value) => Ok(value),
-                        ExecState::Break | ExecState::Continue => Ok(Value::None),
-                    }
-                } else if let Some(else_block) = &if_expr.else_branch {
-                    match self.eval_block(else_block)? {
-                        ExecState::Return(value) => Ok(value),
-                        ExecState::Value(value) => Ok(value),
-                        ExecState::Break | ExecState::Continue => Ok(Value::None),
-                    }
-                } else {
-                    Ok(Value::None)
-                }
+                let state = self.eval_if_expr(if_expr)?;
+                Ok(state.into_value().unwrap_or(Value::None))
             }
             Expr::Match(match_expr) => {
-                let scrutinee = self.eval_expr(&match_expr.scrutinee)?;
-                for arm in &match_expr.arms {
-                    if self.pattern_matches(&arm.pattern, &scrutinee) {
-                        if let Some(guard) = &arm.guard {
-                            if !self.eval_expr(guard)?.is_truthy() {
-                                continue;
-                            }
-                        }
-                        match self.eval_block(&arm.body)? {
-                            ExecState::Return(value) => return Ok(value),
-                            ExecState::Value(value) => return Ok(value),
-                            ExecState::Break | ExecState::Continue => return Ok(Value::None),
-                        }
-                    }
-                }
-                Ok(Value::None)
+                let state = self.eval_match_expr(match_expr)?;
+                Ok(state.into_value().unwrap_or(Value::None))
             }
             Expr::List(list) => {
                 let mut items = Vec::new();
@@ -411,15 +394,13 @@ impl<'a> Interpreter<'a> {
             Expr::Await(await_expr) => self.eval_expr(&await_expr.expr),
             Expr::Spawn(spawn_expr) => self.eval_expr(&spawn_expr.expr),
             Expr::AsyncBlock(block_expr) => {
-                match self.eval_block(&block_expr.block)? {
-                    ExecState::Return(value) | ExecState::Value(value) => Ok(value),
-                    ExecState::Break | ExecState::Continue => Ok(Value::None),
-                }
+                let state = self.eval_block(&block_expr.block)?;
+                Ok(state.into_value().unwrap_or(Value::None))
             }
-            Expr::Block(block) => match self.eval_block(block)? {
-                ExecState::Return(value) | ExecState::Value(value) => Ok(value),
-                ExecState::Break | ExecState::Continue => Ok(Value::None),
-            },
+            Expr::Block(block) => {
+                let state = self.eval_block(block)?;
+                Ok(state.into_value().unwrap_or(Value::None))
+            }
             Expr::Assign(assign_expr) => {
                 let value = self.eval_expr(&assign_expr.value)?;
                 if let Expr::Identifier(name, _) = &assign_expr.target {
@@ -466,6 +447,31 @@ impl<'a> Interpreter<'a> {
                 }
             }
         }
+    }
+
+    fn eval_if_expr(&mut self, if_expr: &IfExpr) -> RatResult<ExecState> {
+        if self.eval_expr(&if_expr.condition)?.is_truthy() {
+            self.eval_block(&if_expr.then_branch)
+        } else if let Some(else_block) = &if_expr.else_branch {
+            self.eval_block(else_block)
+        } else {
+            Ok(ExecState::Value(Value::None))
+        }
+    }
+
+    fn eval_match_expr(&mut self, match_expr: &MatchExpr) -> RatResult<ExecState> {
+        let scrutinee = self.eval_expr(&match_expr.scrutinee)?;
+        for arm in &match_expr.arms {
+            if self.pattern_matches(&arm.pattern, &scrutinee) {
+                if let Some(guard) = &arm.guard {
+                    if !self.eval_expr(guard)?.is_truthy() {
+                        continue;
+                    }
+                }
+                return self.eval_block(&arm.body);
+            }
+        }
+        Ok(ExecState::Value(Value::None))
     }
 
     fn eval_binary(&self, op: BinaryOp, left: Value, right: Value) -> RatResult<Value> {
