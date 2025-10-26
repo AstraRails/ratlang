@@ -109,14 +109,17 @@ impl Vm {
         Self
     }
 
-    pub fn execute(&mut self, compilation: &Compilation, config: ExecutionConfig) -> RatResult<Value> {
+    pub fn execute(
+        &mut self,
+        compilation: &Compilation,
+        config: ExecutionConfig,
+    ) -> RatResult<Value> {
         let mut interpreter = Interpreter::new(compilation);
         interpreter.initialize_builtins();
         interpreter.eval_program()?;
-        let entry_value = interpreter
-            .env
-            .get(&config.entry_point)
-            .ok_or_else(|| RatError::error(format!("entry point `{}` not found", config.entry_point)))?;
+        let entry_value = interpreter.env.get(&config.entry_point).ok_or_else(|| {
+            RatError::error(format!("entry point `{}` not found", config.entry_point))
+        })?;
         let args = Value::List(config.args.into_iter().map(Value::String).collect());
         interpreter.call_value(entry_value, vec![args])
     }
@@ -143,8 +146,14 @@ impl<'a> Interpreter<'a> {
     }
 
     fn initialize_builtins(&mut self) {
-        self.env.insert(SmolStr::new_inline("print"), Value::Function(Function::Native(native_print)));
-        self.env.insert(SmolStr::new_inline("len"), Value::Function(Function::Native(native_len)));
+        self.env.insert(
+            SmolStr::new_inline("print"),
+            Value::Function(Function::Native(native_print)),
+        );
+        self.env.insert(
+            SmolStr::new_inline("len"),
+            Value::Function(Function::Native(native_len)),
+        );
     }
 
     fn eval_program(&mut self) -> RatResult<()> {
@@ -162,12 +171,19 @@ impl<'a> Interpreter<'a> {
                         body: FunctionBody::Block(func_decl.body.clone()),
                         env: self.env.clone(),
                     });
-                    self.env.insert(func_decl.name.clone(), Value::Function(Function::User(func)));
+                    self.env.insert(
+                        func_decl.name.clone(),
+                        Value::Function(Function::User(func)),
+                    );
                 }
                 Item::Statement(stmt) => {
                     self.eval_stmt(stmt)?.into_value();
                 }
-                Item::Struct(_) | Item::Class(_) | Item::Enum(_) | Item::Trait(_) | Item::Impl(_) => {
+                Item::Struct(_)
+                | Item::Class(_)
+                | Item::Enum(_)
+                | Item::Trait(_)
+                | Item::Impl(_) => {
                     // Not yet executable at runtime; skip.
                 }
                 Item::Test(_) => {
@@ -519,10 +535,22 @@ impl<'a> Interpreter<'a> {
             BitXor => Ok(Value::Int(left.as_int()? ^ right.as_int()?)),
             Eq => Ok(Value::Bool(left == right)),
             NotEq => Ok(Value::Bool(left != right)),
-            Lt => Ok(Value::Bool(left.partial_cmp(&right).map_or(false, |ord| ord == std::cmp::Ordering::Less))),
-            Lte => Ok(Value::Bool(left.partial_cmp(&right).map_or(false, |ord| ord != std::cmp::Ordering::Greater))),
-            Gt => Ok(Value::Bool(left.partial_cmp(&right).map_or(false, |ord| ord == std::cmp::Ordering::Greater))),
-            Gte => Ok(Value::Bool(left.partial_cmp(&right).map_or(false, |ord| ord != std::cmp::Ordering::Less))),
+            Lt => Ok(Value::Bool(
+                left.partial_cmp(&right)
+                    .map_or(false, |ord| ord == std::cmp::Ordering::Less),
+            )),
+            Lte => Ok(Value::Bool(
+                left.partial_cmp(&right)
+                    .map_or(false, |ord| ord != std::cmp::Ordering::Greater),
+            )),
+            Gt => Ok(Value::Bool(
+                left.partial_cmp(&right)
+                    .map_or(false, |ord| ord == std::cmp::Ordering::Greater),
+            )),
+            Gte => Ok(Value::Bool(
+                left.partial_cmp(&right)
+                    .map_or(false, |ord| ord != std::cmp::Ordering::Less),
+            )),
             Pipe => Ok(right),
             NullCoalesce => Ok(if !left.is_none() { left } else { right }),
             Range | RangeInclusive => Ok(Value::None),
@@ -560,7 +588,10 @@ impl<'a> Interpreter<'a> {
         }
         let mut env = func.env.clone();
         // Ensure user-defined functions can recurse by making the function value visible inside its own closure env.
-        env.insert(func.name.clone(), Value::Function(Function::User(func.clone())));
+        env.insert(
+            func.name.clone(),
+            Value::Function(Function::User(func.clone())),
+        );
         env.push();
         for (param, arg) in func.params.iter().zip(args.into_iter()) {
             env.insert(param.name.clone(), arg);
@@ -591,9 +622,10 @@ impl<'a> Interpreter<'a> {
 
     fn eval_index(&mut self, target: Value, index: Value) -> RatResult<Value> {
         match (target, index) {
-            (Value::List(list), Value::Int(i)) => {
-                list.get(i as usize).cloned().ok_or_else(|| RatError::error("index out of bounds"))
-            }
+            (Value::List(list), Value::Int(i)) => list
+                .get(i as usize)
+                .cloned()
+                .ok_or_else(|| RatError::error("index out of bounds")),
             (Value::String(s), Value::Int(i)) => s
                 .chars()
                 .nth(i as usize)
@@ -696,7 +728,10 @@ impl Value {
                 format!("[{}]", items.join(", "))
             }
             Value::Dict(map) => {
-                let mut entries: Vec<String> = map.iter().map(|(k, v)| format!("{}: {}", k, v.to_string())).collect();
+                let mut entries: Vec<String> = map
+                    .iter()
+                    .map(|(k, v)| format!("{}: {}", k, v.to_string()))
+                    .collect();
                 entries.sort();
                 format!("{{{}}}", entries.join(", "))
             }

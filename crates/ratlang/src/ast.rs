@@ -11,7 +11,11 @@ pub struct Program {
 
 impl Program {
     pub fn new(module: Option<ModuleDecl>, imports: Vec<ImportDecl>, items: Vec<Item>) -> Self {
-        Self { module, imports, items }
+        Self {
+            module,
+            imports,
+            items,
+        }
     }
 }
 
@@ -32,7 +36,11 @@ pub struct ImportDecl {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ImportItem {
     Wildcard(Span),
-    Item { name: SmolStr, alias: Option<SmolStr>, span: Span },
+    Item {
+        name: SmolStr,
+        alias: Option<SmolStr>,
+        span: Span,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -259,8 +267,16 @@ pub struct CatchBlock {
 pub enum Pattern {
     Identifier(SmolStr, Span),
     Tuple(Vec<Pattern>, Span),
-    Struct { path: Vec<SmolStr>, fields: Vec<(SmolStr, Pattern)>, span: Span },
-    Enum { path: Vec<SmolStr>, args: Vec<Pattern>, span: Span },
+    Struct {
+        path: Vec<SmolStr>,
+        fields: Vec<(SmolStr, Pattern)>,
+        span: Span,
+    },
+    Enum {
+        path: Vec<SmolStr>,
+        args: Vec<Pattern>,
+        span: Span,
+    },
     Wildcard(Span),
     Literal(Literal, Span),
 }
@@ -506,8 +522,16 @@ pub enum TypeExpr {
     List(Box<TypeExpr>, Span),
     Set(Box<TypeExpr>, Span),
     Dict(Box<TypeExpr>, Box<TypeExpr>, Span),
-    Function { params: Vec<TypeExpr>, ret: Box<TypeExpr>, span: Span },
-    Generic { base: Vec<SmolStr>, args: Vec<TypeExpr>, span: Span },
+    Function {
+        params: Vec<TypeExpr>,
+        ret: Box<TypeExpr>,
+        span: Span,
+    },
+    Generic {
+        base: Vec<SmolStr>,
+        args: Vec<TypeExpr>,
+        span: Span,
+    },
     SelfType(Span),
 }
 

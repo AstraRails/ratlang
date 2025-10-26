@@ -9,9 +9,11 @@ pub struct DocBundle {
 
 pub fn generate(sources: &SourceMap) -> RatResult<DocBundle> {
     let mut markdown = String::new();
-    writeln!(&mut markdown, "# Ratlang Documentation\n").map_err(|err| RatError::error(err.to_string()))?;
+    writeln!(&mut markdown, "# Ratlang Documentation\n")
+        .map_err(|err| RatError::error(err.to_string()))?;
     for file in sources.iter() {
-        writeln!(&mut markdown, "## {}\n", &*file.name).map_err(|err| RatError::error(err.to_string()))?;
+        writeln!(&mut markdown, "## {}\n", &*file.name)
+            .map_err(|err| RatError::error(err.to_string()))?;
         writeln!(&mut markdown, "```ratlang\n{}\n```\n", &*file.text)
             .map_err(|err| RatError::error(err.to_string()))?;
     }

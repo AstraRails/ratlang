@@ -105,9 +105,7 @@ impl SourceMap {
     }
 
     pub fn get_by_name(&self, name: &str) -> Option<&SourceFile> {
-        self.files_by_name
-            .get(name)
-            .and_then(|id| self.get(*id))
+        self.files_by_name.get(name).and_then(|id| self.get(*id))
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &SourceFile> {
@@ -119,6 +117,7 @@ impl SourceMap {
     }
 
     pub fn lookup_position(&self, span: Span) -> Option<(&SourceFile, Position, Position)> {
-        self.get(span.file_id).map(|file| (file, span.start, span.end))
+        self.get(span.file_id)
+            .map(|file| (file, span.start, span.end))
     }
 }

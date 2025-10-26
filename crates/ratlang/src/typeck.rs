@@ -64,7 +64,13 @@ impl TypeChecker {
         let params = func
             .params
             .iter()
-            .map(|param| param.ty.as_ref().map(resolve_type_expr).unwrap_or(Type::Any))
+            .map(|param| {
+                param
+                    .ty
+                    .as_ref()
+                    .map(resolve_type_expr)
+                    .unwrap_or(Type::Any)
+            })
             .collect::<Vec<_>>();
         let ret = func
             .return_type
@@ -77,7 +83,11 @@ impl TypeChecker {
     fn check_function(&mut self, func: &FunctionDecl) -> RatResult<()> {
         self.env.push_scope();
         for param in &func.params {
-            let ty = param.ty.as_ref().map(resolve_type_expr).unwrap_or(Type::Any);
+            let ty = param
+                .ty
+                .as_ref()
+                .map(resolve_type_expr)
+                .unwrap_or(Type::Any);
             self.env.insert(param.name.clone(), ty);
         }
         self.check_block(&func.body)?;
@@ -223,7 +233,11 @@ impl TypeChecker {
                 let left_ty = self.check_expr(&binary.left)?;
                 let right_ty = self.check_expr(&binary.right)?;
                 match binary.op {
-                    BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Mod => {
+                    BinaryOp::Add
+                    | BinaryOp::Sub
+                    | BinaryOp::Mul
+                    | BinaryOp::Div
+                    | BinaryOp::Mod => {
                         if matches!(left_ty, Type::Float) || matches!(right_ty, Type::Float) {
                             Type::Float
                         } else {
@@ -322,7 +336,13 @@ impl TypeChecker {
                 let params = lambda
                     .params
                     .iter()
-                    .map(|param| param.ty.as_ref().map(resolve_type_expr).unwrap_or(Type::Any))
+                    .map(|param| {
+                        param
+                            .ty
+                            .as_ref()
+                            .map(resolve_type_expr)
+                            .unwrap_or(Type::Any)
+                    })
                     .collect::<Vec<_>>();
                 let body_ty = self.check_expr(lambda.body.as_ref())?;
                 Type::Function(params, Box::new(body_ty), Asyncness::Sync)

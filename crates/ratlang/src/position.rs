@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// A zero-based offset into a source file.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash, Default)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash, Default,
+)]
 pub struct Offset(pub usize);
 
 impl Offset {
@@ -75,7 +77,11 @@ pub struct Span {
 impl Span {
     #[inline]
     pub fn new(file_id: FileId, start: Position, end: Position) -> Self {
-        Self { file_id, start, end }
+        Self {
+            file_id,
+            start,
+            end,
+        }
     }
 
     #[inline]
