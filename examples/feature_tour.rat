@@ -1,0 +1,145 @@
+module demo.feature_tour
+
+const AUTHORS = ["Remy the rat", "Lang the runtime", "You"]
+const RAW_NUMBERS = [4, 7, 10, 13, 18, 21]
+const PROFILE = {
+  "name": "Ratlang",
+  "version": "0.1.0",
+  "mood": "playful",
+  "interactive": true
+}
+
+fn describe_number(n: int) -> str
+  match n
+    0:
+      "zero"
+    sample if sample < 0:
+      "negative"
+    sample if sample % 2 == 0:
+      "even"
+    _:
+      "odd"
+
+fn make_increment(amount: int)
+  |value| value + amount
+
+fn compute_checksum(seed: int) -> int
+  let double = |value| value * 2
+  let square = |value| value * value
+  seed |> double |> square |> make_increment(1)
+
+fn apply_steps(value: int, steps) -> int
+  var idx = 0
+  var current = value
+  while idx < len(steps)
+    let step = steps[idx]
+    current = step(current)
+    idx = idx + 1
+  current
+
+fn summarize(values: List[int]) -> Dict[str, int]
+  if len(values) == 0
+    {
+      "total": 0,
+      "max": 0,
+      "count": 0
+    }
+  else
+    var total = 0
+    var max_value = values[0]
+    for value in values
+      total = total + value
+      if value > max_value
+        max_value = value
+    {
+      "total": total,
+      "max": max_value,
+      "count": len(values)
+    }
+
+fn count_vowels(text: str) -> int
+  var hits = 0
+  for ch in text
+    if ch == "a" || ch == "e" || ch == "i" || ch == "o" || ch == "u"
+      hits = hits + 1
+  hits
+
+fn find_first_even(values: List[int]) -> int
+  var idx = 0
+  while idx < len(values)
+    let current = values[idx]
+    if current % 2 != 0
+      idx = idx + 1
+      continue
+    return current
+  -1
+
+fn summarize_args(args: List[str]) -> Dict[str, int]
+  var longest = 0
+  for arg in args
+    let length = len(arg)
+    if length > longest
+      longest = length
+  {
+    "count": len(args),
+    "longest": longest
+  }
+
+fn main(args: List[str]) -> int
+  print("=== Ratlang feature tour ===")
+  print("profile:", PROFILE.name, "version:", PROFILE.version, "mood:", PROFILE.mood)
+
+  print("authors:")
+  for author in AUTHORS
+    print(" -", author)
+
+  let arg_descriptor = describe_number(len(args))
+  print("received", len(args), "arg(s) ->", arg_descriptor)
+
+  let inc_by_two = make_increment(2)
+  let transformations = [inc_by_two, |value| value * 3, |value| value - 1]
+  let piped = apply_steps(4, transformations)
+  print("pipelined steps result:", piped)
+
+  let checksum = compute_checksum(5)
+  print("checksum via |>:", checksum)
+
+  let summary = summarize(RAW_NUMBERS)
+  print("numbers -> total:", summary.total, "max:", summary.max, "count:", summary.count)
+
+  let first_even = find_first_even(RAW_NUMBERS)
+  print("first even from RAW_NUMBERS:", first_even)
+
+  let vowels = count_vowels("ratlang language tour")
+  print("vowels in phrase:", vowels)
+
+  let fallback_alias = none
+  let active_name = fallback_alias ?? PROFILE.name
+  print("null-coalesced name:", active_name)
+
+  let crew = [
+    { "name": "Remy", "role": "guide" },
+    { "name": "Lang", "role": "runtime" }
+  ]
+  for member in crew
+    print("crew member:", member.name, "->", member.role)
+
+  var odd_acc = 0
+  var probe = 0
+  while true
+    probe = probe + 1
+    if probe % 2 == 0
+      continue
+    odd_acc = odd_acc + probe
+    if probe >= 9
+      break
+  print("sum of processed odd probes:", odd_acc)
+
+  let arg_summary = summarize_args(args)
+  print("args summary -> count:", arg_summary.count, "longest:", arg_summary.longest)
+
+  let second_number = RAW_NUMBERS[1]
+  print("second number via index:", second_number)
+
+  print("args:", args)
+  0

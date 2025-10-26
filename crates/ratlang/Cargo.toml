@@ -1,0 +1,53 @@
+[package]
+name = "ratlang"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Ratlang programming language compiler, runtime, and tooling core."
+authors = ["ratlang project maintainers <dev@ratlang.org>"]
+
+[dependencies]
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+tokio = { workspace = true }
+async-channel = { workspace = true }
+parking_lot = { workspace = true }
+smol_str = { workspace = true }
+indexmap = { workspace = true }
+itertools = { workspace = true }
+logos = { workspace = true }
+regex = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tracing-error = { workspace = true }
+smallvec = { workspace = true }
+async-recursion = { workspace = true }
+color-eyre = { workspace = true }
+serde_repr = { workspace = true }
+camino = { workspace = true }
+path-absolutize = { workspace = true }
+tempfile = { workspace = true }
+rayon = { workspace = true }
+bytes = { workspace = true }
+notify = { workspace = true }
+glob = { workspace = true }
+walkdir = { workspace = true }
+semver = { workspace = true }
+url = { workspace = true }
+reqwest = { workspace = true }
+prettyplease = { workspace = true }
+proc-macro2 = { workspace = true }
+syn = { workspace = true }
+quote = { workspace = true }
+unescaper = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+pretty_assertions = "1.4"
+insta = { version = "1.34", features = ["yaml"] }
