@@ -1,0 +1,46 @@
+module demo.perf_primes
+
+const TARGET = 500
+const ITERATIONS = 100
+
+fn is_prime(value: int) -> bool
+  if value < 2
+    return false
+  if value == 2
+    return true
+  if value % 2 == 0
+    return false
+  var check = 3
+  while check * check <= value
+    if value % check == 0
+      return false
+    check = check + 2
+  true
+
+fn nth_prime(idx: int) -> int
+  if idx <= 0
+    return 0
+  var found = 0
+  var candidate = 1
+  while found < idx
+    candidate = candidate + 1
+    if is_prime(candidate)
+      found = found + 1
+  candidate
+
+fn checksum(iterations: int, target: int) -> int
+  var run = 0
+  var total = 0
+  while run < iterations
+    total = total + nth_prime(target)
+    run = run + 1
+  total
+
+fn main(args: List[str]) -> int
+  var iter = ITERATIONS
+  if len(args) > 0
+    iter = len(args) * 10
+  let target = TARGET
+  let total = checksum(iter, target)
+  print("ratlang primes checksum:", total)
+  0
