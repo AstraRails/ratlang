@@ -3,6 +3,7 @@ use crate::compiler::Compilation;
 use crate::diagnostics::{RatError, RatResult};
 use smol_str::SmolStr;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Clone, Debug)]
 pub enum Value {
@@ -18,13 +19,13 @@ pub enum Value {
 
 #[derive(Clone, Debug)]
 pub enum Function {
-    User(UserFunction),
+    User(Rc<UserFunction>),
     Native(NativeFunction),
 }
 
 pub type NativeFunction = fn(&mut Interpreter, Vec<Value>) -> RatResult<Value>;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct UserFunction {
     pub name: SmolStr,
     pub params: Vec<Parameter>,
@@ -154,13 +155,13 @@ impl<'a> Interpreter<'a> {
                     self.env.insert(const_decl.name.clone(), value);
                 }
                 Item::Function(func_decl) => {
-                    let func = UserFunction {
+                    let func = Rc::new(UserFunction {
                         name: func_decl.name.clone(),
                         params: func_decl.params.clone(),
                         asyncness: func_decl.asyncness.clone(),
                         body: FunctionBody::Block(func_decl.body.clone()),
                         env: self.env.clone(),
-                    };
+                    });
                     self.env.insert(func_decl.name.clone(), Value::Function(Function::User(func)));
                 }
                 Item::Statement(stmt) => {
@@ -382,13 +383,13 @@ impl<'a> Interpreter<'a> {
                 Ok(Value::Dict(map))
             }
             Expr::Lambda(lambda) => {
-                let func = UserFunction {
+                let func = Rc::new(UserFunction {
                     name: SmolStr::new_inline("<lambda>"),
                     params: lambda.params.clone(),
                     asyncness: Asyncness::Sync,
                     body: FunctionBody::Expr(*lambda.body.clone()),
                     env: self.env.clone(),
-                };
+                });
                 Ok(Value::Function(Function::User(func)))
             }
             Expr::Await(await_expr) => self.eval_expr(&await_expr.expr),
@@ -500,7 +501,8 @@ impl<'a> Interpreter<'a> {
                 _ => Ok(Value::None),
             },
             Div => match (left, right) {
-                (Value::Int(a), Value::Int(b)) => Ok(Value::Float(a as f64 / b as f64)),
+                (Value::Int(_), Value::Int(0)) => Err(RatError::error("division by zero")),
+                (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a / b)),
                 (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a / b)),
                 (Value::Int(a), Value::Float(b)) => Ok(Value::Float(a as f64 / b)),
                 (Value::Float(a), Value::Int(b)) => Ok(Value::Float(a / b as f64)),
@@ -547,7 +549,7 @@ impl<'a> Interpreter<'a> {
         }
     }
 
-    fn call_user_function(&mut self, func: UserFunction, args: Vec<Value>) -> RatResult<Value> {
+    fn call_user_function(&mut self, func: Rc<UserFunction>, args: Vec<Value>) -> RatResult<Value> {
         if args.len() != func.params.len() {
             return Err(RatError::error(format!(
                 "function `{}` expected {} arguments, got {}",
@@ -564,10 +566,10 @@ impl<'a> Interpreter<'a> {
             env.insert(param.name.clone(), arg);
         }
         let mut child = self.with_env(env);
-        let result = match func.body {
-            FunctionBody::Block(block) => child.eval_block(&block)?,
+        let result = match &func.body {
+            FunctionBody::Block(block) => child.eval_block(block)?,
             FunctionBody::Expr(expr) => {
-                let value = child.eval_expr(&expr)?;
+                let value = child.eval_expr(expr)?;
                 ExecState::Value(value)
             }
         };
