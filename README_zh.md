@@ -6,9 +6,8 @@ Ratlang 是一个实验性的编程语言与工具链，其全部代码均由 AI
 ## 亮点
 - **全栈 AI 生成**：词法、语法、类型检查、解释器、CLI、示例与测试均由 Codex 自动产出。
 - **表达力强的语法**：缩进式代码块、管道操作、lambda、模式匹配、Option/Result 字面量与丰富数据结构。
-- **树遍解释器**：支持闭包、一等函数、循环、`break/continue`、多分支 `else if` 与小型原生函数集（`print`、`len` 等）。
+- **树遍解释器**：支持闭包、一等函数、循环、`break/continue` 与小型原生函数集（`print`、`len` 等）。
 - **完整工具链**：工作区包含 `rat`（脚本执行 + REPL）、`ratc`、格式化工具、文档生成器、语言服务器与实用示例。
-- **TDD 驱动**：`crates/ratlang/tests/api` 中的集成测试直接运行 Ratlang 程序以防回归。
 
 ## 实现概览
 - **语言前端**：`crates/ratlang/src/{lexer,parser,ast}` 负责词法分析、递归下降解析与 AST 建模。
